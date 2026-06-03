@@ -1,21 +1,24 @@
 // ─── Executor Role Map ─────────────────────────────────────────────────────────
 // Map executor titles (lowercase) to your Discord server's role IDs.
 // If an executor has no entry here, no role will be pinged for it.
-// Add or remove entries as needed.
 
 module.exports = {
     "potassium":         "1511758178994487496",
-    "xeno":              "",   // paste your role ID here
-    "wave":              "",
-    "synapse z":         "",
+    "volt":              "1511758043698823389",
+    "isaeva":            "1511758575620456528",
+    "madium":            "1511759083814912154",
+    "wave":              "1511758271952982077",
+    "synapse z":         "1511758333030305935",
+    "macsploit":         "1511759329269649508",
+    "seliware":          "1511759168690716723",
+    "bunni.lol":         "1511759232100471034",
+    "xeno":              "",
     "delta":             "",
     "solara":            "",
-    "macsploit":         "",
     "nezur":             "",
     "horizon":           "",
     "codex":             "",
     "matrix hub":        "",
-    "seliware":          "",
     "zenith":            "",
     "atlantis":          "",
     "cryptic":           "",
@@ -25,7 +28,5 @@ module.exports = {
     "lovreware":         "",
     "matcha":            "",
     "photon":            "",
-    "bunni.lol":         "",
     "rebel":             "",
-    // Add any other executors tracked by WEAO below:
 };
