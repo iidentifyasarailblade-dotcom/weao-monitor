@@ -132,6 +132,14 @@ function buildExecutorEmbed(exploit, changes) {
         { name: "Date",           value: exploit.updatedDate || discordTimestamp(), inline: false },
     ];
 
+    // Changelog — truncate to 1024 chars (Discord field limit)
+    if (exploit.changelog && exploit.changelog.trim() !== "") {
+        const changelog = exploit.changelog.length > 1024
+            ? exploit.changelog.slice(0, 1021) + "..."
+            : exploit.changelog;
+        fields.push({ name: "Changelog", value: `\`\`\`${changelog}\`\`\``, inline: false });
+    }
+
     if (changes.detected !== undefined) {
         fields.push({ name: "Detection",     value: exploit.detected ? "Detected" : "Undetected", inline: true });
     }
@@ -157,6 +165,7 @@ function buildExecutorEmbed(exploit, changes) {
 
     return {
         color, title, description, fields,
+        thumbnail: { url: WEAO_ICON },
         footer:    { text: "Powered by WEAO, The #1 Roblox exploit status tracker", icon_url: WEAO_ICON },
         timestamp: new Date().toISOString(),
     };
