@@ -174,32 +174,43 @@ async function checkExecutors() {
         ? exploits.filter(e => WATCH_EXECUTORS.includes(e.title.toLowerCase()))
         : exploits;
 
-    // First run — seed all executor state and return without sending anything
+    // First run — seed all state, send nothing
     if (!booted) {
         for (const exploit of filtered) {
-            executorState[exploit.title.toLowerCase()] = {
+            const titleKey    = exploit.title.toLowerCase();
+            const platformKey = `${titleKey}::${(exploit.platform || "").toLowerCase()}`;
+
+            // Track per-platform state
+            executorState[platformKey] = {
                 version:      exploit.version,
                 rbxversion:   exploit.rbxversion,
                 updateStatus: exploit.updateStatus,
                 detected:     exploit.detected,
             };
+
+            // Track per-title detection (true if ANY platform is detected)
+            if (!executorState[titleKey]) executorState[titleKey] = { detected: false };
+            if (exploit.detected) executorState[titleKey].detected = true;
         }
-        console.log(`[Executors] Seeded ${filtered.length} executors.`);
+        console.log(`[Executors] Seeded ${filtered.length} executor entries.`);
         return;
     }
 
     for (const exploit of filtered) {
-        const key  = exploit.title.toLowerCase();
-        const prev = executorState[key];
+        const titleKey    = exploit.title.toLowerCase();
+        const platformKey = `${titleKey}::${(exploit.platform || "").toLowerCase()}`;
+        const prev        = executorState[platformKey];
 
-        // Newly appeared executor mid-session — seed it silently
+        // Newly appeared mid-session — seed silently
         if (!prev) {
-            executorState[key] = {
+            executorState[platformKey] = {
                 version:      exploit.version,
                 rbxversion:   exploit.rbxversion,
                 updateStatus: exploit.updateStatus,
                 detected:     exploit.detected,
             };
+            if (!executorState[titleKey]) executorState[titleKey] = { detected: false };
+            if (exploit.detected) executorState[titleKey].detected = true;
             continue;
         }
 
@@ -210,19 +221,32 @@ async function checkExecutors() {
 
         if (!versionChanged && !rbxVersionChanged && !updateStatusChanged && !detectedChanged) continue;
 
-        // Always update state so we track the latest values even while suppressed
-        executorState[key] = {
+        // Always update platform state
+        executorState[platformKey] = {
             version:      exploit.version,
             rbxversion:   exploit.rbxversion,
             updateStatus: exploit.updateStatus,
             detected:     exploit.detected,
         };
 
-        // If executor is currently detected, suppress all notifications UNLESS
-        // this is the transition back to undetected
-        const goingUndetected = detectedChanged && !exploit.detected;
-        if (exploit.detected && !goingUndetected) {
-            console.log(`[Executors] Suppressed (detected): ${exploit.title}`);
+        // Update title-level detection: true if ANY platform is now detected
+        const anyDetected = filtered
+            .filter(e => e.title.toLowerCase() === titleKey)
+            .some(e => e.detected);
+        const wasDetected = executorState[titleKey]?.detected ?? false;
+        executorState[titleKey] = { detected: anyDetected };
+
+        const titleJustDetected   = !wasDetected && anyDetected;
+        const titleJustUndetected = wasDetected  && !anyDetected;
+
+        // Suppress everything while detected EXCEPT:
+        // - The first moment it becomes detected (titleJustDetected)
+        // - The moment it becomes fully undetected (titleJustUndetected)
+        if (anyDetected && !titleJustDetected) {
+            console.log(`[Executors] Suppressed (detected): ${exploit.title} [${exploit.platform}]`);
+            continue;
+        }
+        if (!anyDetected && !titleJustUndetected && wasDetected) {
             continue;
         }
 
@@ -241,7 +265,7 @@ async function checkExecutors() {
             embeds:           [buildExecutorEmbed(exploit, changes)],
         });
 
-        console.log(`[Executors] Sent: ${exploit.title} | v${exploit.version} | roleId: ${roleId || "none"}`);
+        console.log(`[Executors] Sent: ${exploit.title} [${exploit.platform}] | roleId: ${roleId || "none"}`);
     }
 }
 
