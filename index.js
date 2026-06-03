@@ -210,6 +210,22 @@ async function checkExecutors() {
 
         if (!versionChanged && !rbxVersionChanged && !updateStatusChanged && !detectedChanged) continue;
 
+        // Always update state so we track the latest values even while suppressed
+        executorState[key] = {
+            version:      exploit.version,
+            rbxversion:   exploit.rbxversion,
+            updateStatus: exploit.updateStatus,
+            detected:     exploit.detected,
+        };
+
+        // If executor is currently detected, suppress all notifications UNLESS
+        // this is the transition back to undetected
+        const goingUndetected = detectedChanged && !exploit.detected;
+        if (exploit.detected && !goingUndetected) {
+            console.log(`[Executors] Suppressed (detected): ${exploit.title}`);
+            continue;
+        }
+
         const roleId = getRoleId(exploit.title);
 
         const changes = {
@@ -226,14 +242,6 @@ async function checkExecutors() {
         });
 
         console.log(`[Executors] Sent: ${exploit.title} | v${exploit.version} | roleId: ${roleId || "none"}`);
-
-        // Update state AFTER sending
-        executorState[key] = {
-            version:      exploit.version,
-            rbxversion:   exploit.rbxversion,
-            updateStatus: exploit.updateStatus,
-            detected:     exploit.detected,
-        };
     }
 }
 
