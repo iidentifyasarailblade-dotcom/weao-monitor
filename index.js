@@ -248,11 +248,10 @@ async function checkExecutors() {
         const titleJustDetected   = !wasDetected && anyDetected;
         const titleJustUndetected = wasDetected  && !anyDetected;
 
-        // Suppress everything while detected EXCEPT:
-        // - The first moment it becomes detected (titleJustDetected)
-        // - The moment it becomes fully undetected (titleJustUndetected)
-        if (anyDetected && !titleJustDetected) {
-            console.log(`[Executors] Suppressed (detected): ${exploit.title} [${exploit.platform}]`);
+        // While detected, suppress detection-only notifications but still allow version updates through
+        const hasVersionChange = versionChanged || rbxVersionChanged;
+        if (anyDetected && !titleJustDetected && !hasVersionChange) {
+            console.log(`[Executors] Suppressed (detected, no version change): ${exploit.title} [${exploit.platform}]`);
             continue;
         }
         if (!anyDetected && !titleJustUndetected && wasDetected) {
